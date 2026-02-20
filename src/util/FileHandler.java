@@ -12,8 +12,8 @@ import java.util.ArrayList;
  */
 public class FileHandler {
     
-    private static final String BOOKS_FILE = "src/books.txt";
-    private static final String USERS_FILE = "src/users.txt";
+    private static final String BOOKS_FILE = "books.txt";
+    private static final String USERS_FILE = "users.txt";
 
     // =============== BOOK FILE OPERATIONS ===============
     
