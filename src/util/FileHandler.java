@@ -1,57 +1,208 @@
-package bookshop;
+package util;
 
-import java.util.*;
+import model.Book;
+import model.User;
+import model.Cashier;
+import model.Manager;
+import java.io.*;
+import java.util.ArrayList;
 
-public class Main {
+/**
+ * FileHandler class - Handles all file operations for the bookshop
+ */
+public class FileHandler {
+    
+    private static final String BOOKS_FILE = "src/books.txt";
+    private static final String USERS_FILE = "src/users.txt";
 
-    static Scanner sc = new Scanner(System.in);
+    // =============== BOOK FILE OPERATIONS ===============
+    
+    /**
+     * Save a single book to file
+     */
+    public static void saveBook(Book book) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(BOOKS_FILE, true))) {
+            writer.write(book.toString());
+            writer.newLine();
+        } catch (IOException e) {
+            System.out.println("Error saving book: " + e.getMessage());
+        }
+    }
 
-    public static void main(String[] args) {
-
-        System.out.println("===== CITY BOOKSHOP SYSTEM =====");
-        System.out.println("Login As:");
-        System.out.println("1. Manager");
-        System.out.println("2. Cashier");
-
-        int choice = sc.nextInt();
-        User user;
-
-        if (choice == 1) {
-            user = new Manager("manager", "123");
-        } else {
-            user = new Cashier("cashier", "123");
+    /**
+     * Get all books from file
+     */
+    public static ArrayList<Book> getAllBooks() {
+        ArrayList<Book> books = new ArrayList<>();
+        File file = new File(BOOKS_FILE);
+        
+        if (!file.exists()) {
+            return books;
         }
 
-        user.showMenu();
+        try (BufferedReader reader = new BufferedReader(new FileReader(BOOKS_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                
+                String[] parts = line.split(",");
+                if (parts.length == 5) {
+                    String id = parts[0];
+                    String name = parts[1];
+                    String category = parts[2];
+                    double price = Double.parseDouble(parts[3]);
+                    int quantity = Integer.parseInt(parts[4]);
+                    books.add(new Book(id, name, category, price, quantity));
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading books: " + e.getMessage());
+        }
+        return books;
+    }
 
-        if (user instanceof Manager) {
+    /**
+     * Search books by name
+     */
+    public static ArrayList<Book> searchBooksByName(String searchName) {
+        ArrayList<Book> results = new ArrayList<>();
+        ArrayList<Book> allBooks = getAllBooks();
+        
+        for (Book book : allBooks) {
+            if (book.getName().toLowerCase().contains(searchName.toLowerCase())) {
+                results.add(book);
+            }
+        }
+        return results;
+    }
 
-            System.out.println("\nEnter Book ID:");
-            String id = sc.next();
+    /**
+     * Search books by category
+     */
+    public static ArrayList<Book> searchBooksByCategory(String category) {
+        ArrayList<Book> results = new ArrayList<>();
+        ArrayList<Book> allBooks = getAllBooks();
+        
+        for (Book book : allBooks) {
+            if (book.getCategory().equalsIgnoreCase(category)) {
+                results.add(book);
+            }
+        }
+        return results;
+    }
 
-            System.out.println("Enter Book Name:");
-            String name = sc.next();
+    /**
+     * Search books by price range
+     */
+    public static ArrayList<Book> searchBooksByPrice(double minPrice, double maxPrice) {
+        ArrayList<Book> results = new ArrayList<>();
+        ArrayList<Book> allBooks = getAllBooks();
+        
+        for (Book book : allBooks) {
+            if (book.getPrice() >= minPrice && book.getPrice() <= maxPrice) {
+                results.add(book);
+            }
+        }
+        return results;
+    }
 
-            System.out.println("Enter Category:");
-            String category = sc.next();
+    /**
+     * Search book by ID
+     */
+    public static Book searchBookById(String bookId) {
+        ArrayList<Book> allBooks = getAllBooks();
+        
+        for (Book book : allBooks) {
+            if (book.getBookId().equalsIgnoreCase(bookId)) {
+                return book;
+            }
+        }
+        return null;
+    }
 
-            System.out.println("Enter Price:");
-            double price = sc.nextDouble();
+    /**
+     * Update all books in file (used after modifying book data)
+     */
+    public static void updateAllBooks(ArrayList<Book> books) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(BOOKS_FILE))) {
+            for (Book book : books) {
+                writer.write(book.toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error updating books: " + e.getMessage());
+        }
+    }
 
-            System.out.println("Enter Quantity:");
-            int quantity = sc.nextInt();
+    // =============== USER FILE OPERATIONS ===============
+    
+    /**
+     * Save a user account to file
+     */
+    public static void saveUser(User user, String role) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_FILE, true))) {
+            writer.write(user.getUsername() + "," + user.getPassword() + "," + role);
+            writer.newLine();
+        } catch (IOException e) {
+            System.out.println("Error saving user: " + e.getMessage());
+        }
+    }
 
-            Book book = new Book(id, name, category, price, quantity);
-            FileHandler.saveBook(book);
-
-            System.out.println("Book Added Successfully!");
+    /**
+     * Authenticate user login
+     */
+    public static User authenticateUser(String username, String password) {
+        File file = new File(USERS_FILE);
+        
+        if (!file.exists()) {
+            return null;
         }
 
-        System.out.println("\nAll Books:");
-        List<Book> books = FileHandler.loadBooks();
-
-        for (Book b : books) {
-            System.out.println(b.getName() + " - Rs." + b.getPrice());
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 3) {
+                    String storedUsername = parts[0];
+                    String storedPassword = parts[1];
+                    String role = parts[2];
+                    
+                    if (storedUsername.equals(username) && storedPassword.equals(password)) {
+                        if (role.equalsIgnoreCase("Manager")) {
+                            return new Manager(username, password);
+                        } else if (role.equalsIgnoreCase("Cashier")) {
+                            return new Cashier(username, password);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error authenticating user: " + e.getMessage());
         }
+        return null;
+    }
+
+    /**
+     * Check if username exists
+     */
+    public static boolean usernameExists(String username) {
+        File file = new File(USERS_FILE);
+        
+        if (!file.exists()) {
+            return false;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 1 && parts[0].equals(username)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error checking username: " + e.getMessage());
+        }
+        return false;
     }
 }
