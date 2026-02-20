@@ -1,41 +1,57 @@
-package util;
+package bookshop;
 
-import java.io.*;
-import java.util.ArrayList;
-import model.Book;
+import java.util.*;
 
-public class FileHandler {
+public class Main {
 
-    private static final String FILE_NAME = "books.txt";
+    static Scanner sc = new Scanner(System.in);
 
-    public static void saveBook(Book book) {
-        try (FileWriter fw = new FileWriter(FILE_NAME, true)) {
-            fw.write(book.toString() + "\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    public static void main(String[] args) {
 
-    public static ArrayList<Book> getAllBooks() {
-        ArrayList<Book> list = new ArrayList<>();
+        System.out.println("===== CITY BOOKSHOP SYSTEM =====");
+        System.out.println("Login As:");
+        System.out.println("1. Manager");
+        System.out.println("2. Cashier");
 
-        try (BufferedReader br = new BufferedReader(new FileReader(FILE_NAME))) {
-            String line;
+        int choice = sc.nextInt();
+        User user;
 
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(",");
-                Book b = new Book(
-                        data[0],
-                        Double.parseDouble(data[1]),
-                        data[2]
-                );
-                list.add(b);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (choice == 1) {
+            user = new Manager("manager", "123");
+        } else {
+            user = new Cashier("cashier", "123");
         }
 
-        return list;
+        user.showMenu();
+
+        if (user instanceof Manager) {
+
+            System.out.println("\nEnter Book ID:");
+            String id = sc.next();
+
+            System.out.println("Enter Book Name:");
+            String name = sc.next();
+
+            System.out.println("Enter Category:");
+            String category = sc.next();
+
+            System.out.println("Enter Price:");
+            double price = sc.nextDouble();
+
+            System.out.println("Enter Quantity:");
+            int quantity = sc.nextInt();
+
+            Book book = new Book(id, name, category, price, quantity);
+            FileHandler.saveBook(book);
+
+            System.out.println("Book Added Successfully!");
+        }
+
+        System.out.println("\nAll Books:");
+        List<Book> books = FileHandler.loadBooks();
+
+        for (Book b : books) {
+            System.out.println(b.getName() + " - Rs." + b.getPrice());
+        }
     }
 }
