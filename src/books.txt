@@ -1,2 +1,10 @@
 Java Basics,2500.0,Programming
 Java Basics,2500.0,Programming
+B001,Java Programming,Programming,2500.0,15
+B002,Python Basics,Programming,2000.0,20
+B003,Data Structures,Computer Science,3000.0,10
+B004,Web Development,Programming,2800.0,12
+B005,Database Systems,Computer Science,3200.0,8
+B006,The Great Gatsby,Fiction,1500.0,25
+B007,To Kill a Mockingbird,Fiction,1800.0,18
+B008,Business Management,Business,2200.0,14
